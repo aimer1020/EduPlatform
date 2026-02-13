@@ -9,6 +9,7 @@ A learning platform for primary and preparatory students following Egyptian and 
 ## Table of Contents
 - [About](#about)
 - [Features](#features)
+- [Models Overview](#Models-Overview)
 - [Installation](#installation)
 - [Usage](#usage)
 - [API Documentation](#api-documentation)
@@ -36,11 +37,51 @@ Built with **Python**, **Django**, and modern web technologies, it targets stude
 - Progress tracking and performance statistics  
 - Teacher/admin panel to manage content and monitor students  
 - Multi-language support (Arabic/English)  
-- Responsive design for desktop and tablet  
+- Responsive design for desktop and tablet
+- User management system with extended User model
+- Differentiated profiles for Teachers and Students
+- Custom validation for BDF and phone numbers
+- Teacher-specific fields: subject specialization, experience, CV, verification status
+- Student-specific fields: academic year, contact information, and parent/guardian details
+
 
 ---
+
+## Models-Overview
+
+   ### User
+   - Extends Django's AbstractUser
+   - Adds:
+     - User type (Teacher/Student)
+     - Biography
+     - Timestamps (created_at, updated_at)
+
+   ### TeacherProfile
+   - Linked OneToOne to User
+   - Fields:
+     - Subject specialization
+     - Teaching experience
+     - CV upload
+     - Verification status
+
+   ### StudentProfile
+   - Linked OneToOne to User
+   - Fields:
+     - Academic year
+     - Contact information
+     - Parent/guardian details
+
 
 ## Installation
 1. Clone the repository:
    ```bash
    git clone https://github.com/username/EduPlatform.git
+
+## API documentation
+   ### Users API (planned)
+   - **POST /api/users/register/** - Register new user
+   - **GET /api/users/{id}/** - Retrieve user profile
+   - **PUT /api/users/{id}/** - Update user profile
+   - **GET /api/teachers/** - List all teachers
+   - **GET /api/students/** - List all students
+
