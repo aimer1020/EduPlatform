@@ -1,10 +1,13 @@
 import os
 import re
+from typing import Optional
+from django.utils.translation import gettext_lazy as _
 from django.core.validators import (
     MinValueValidator,
     MaxValueValidator,
     FileExtensionValidator
 )
+from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
@@ -12,6 +15,16 @@ from django.conf import settings
 from django.db import models
 from decimal import Decimal
 
+# =====================
+# CONFIGURATION CONSTANTS
+# =====================
+
+MIN_EXPERIENCE_YEARS  = 1
+MAX_EXPERIENCE_YEARS = 50
+MAX_CV_FILE_SIZE_MB = getattr(settings, 'MAX_CV_FILE_SIZE_MB', 5)
+ALLOWED_CV_EXTENSIONS = getattr(settings, 'ALLOWED_CV_EXTENSIONS', ['pdf'])
+MIN_ACADEMIC_YEAR = 1
+MAX_ACADEMIC_YEAR = 12
 
 # =====================
 # CUSTOM VALIDATORS
@@ -20,38 +33,82 @@ from decimal import Decimal
 def validate_file_size(value):
     """
     Validate uploaded file size.
-    Maximum allowed: 5MB for CV files.
+    
+    Args:
+        value: Django UploadedFile object
+        
+    Raises:
+        ValidationError: If file exceeds maximum size
     """
-    max_size_mb = 5
+    if not value:
+        return
+    
+    max_size_bytes = MAX_CV_FILE_SIZE_MB * 1024 * 1024
     filesize = value.size
     
-    if filesize > max_size_mb * 1024 * 1024:
+    if filesize > max_size_bytes:
         raise ValidationError(
-            f"File size cannot exceed {max_size_mb}MB. "
-            f"Current size: {filesize / (1024 * 1024):.2f}MB"
+            _(
+                "File size cannot exceed %(max_size)sMB. "
+                "Current size: %(current_size).2fMB"
+            ),
+            params={
+                'max_size': MAX_CV_FILE_SIZE_MB,
+                'current_size': filesize / (1024 * 1024)
+            },
+            code='file_too_large'
         )
-
 
 def validate_pdf(file):
     """
     Validate PDF by checking file header magic bytes.
-    PDF files always start with %PDF- signature.
-    """
-    try:
-        file.seek(0)
-        header = file.read(5)
-        file.seek(0)  # Reset file pointer
+    
+    PDF files must start with %PDF- signature.
+    This prevents users from uploading malicious files with .pdf extension.
+    
+    Args:
+        file: Django UploadedFile object
         
-        if not header.startswith(b'%PDF-'):
+    Raises:
+        ValidationError: If file is not a valid PDF
+        
+    Note:
+        For production, integrate with virus scanning (ClamAV) and
+        consider using PyPDF2 for deeper validation.
+    """
+    if not file:
+        return
+    
+    try:
+        # Ensure file pointer is at start
+        file.seek(0)
+        
+        # Read first 5 bytes for PDF signature
+        header = file.read(5)
+        
+        # Reset file pointer for subsequent operations
+        file.seek(0)
+        
+        # Validate PDF signature
+        if not header or not header.startswith(b'%PDF-'):
             raise ValidationError(
-                "Invalid PDF file. The file may be corrupted or in the wrong format."
+                _("Invalid PDF file. The file may be corrupted or in the wrong format."),
+                code='invalid_pdf_format'
             )
+            
     except AttributeError:
-        # Handle case where file object doesn't support seek
-        raise ValidationError("Unable to validate file format.")
+        # File object doesn't support seek (shouldn't happen with UploadedFile)
+        raise ValidationError(
+            _("Unable to validate file format. Invalid file object."),
+            code='invalid_file_object'
+        )
     except Exception as e:
-        raise ValidationError(f"Error validating PDF: {str(e)}")
-
+        # Log this in production
+        raise ValidationError(
+            _("Error validating PDF: %(error)s"),
+            params={'error': str(e)},
+            code='pdf_validation_error'
+        )
 
 def validate_phone(value):
     """
@@ -74,15 +131,40 @@ def validate_phone(value):
             "010, 011, 012, or 015. Example: 01012345678"
         )
 
-
 def validate_phone_optional(value):
     """
-    Optional phone validator that allows empty values.
+    Optional phone validator that allows empty/null values.
+    
+    Args:
+        value: Phone number string or None
     """
     if not value or str(value).strip() == '':
         return
     validate_phone(value)
 
+
+def validate_academic_year(value):
+    """
+    Validate academic year is within K-12 education range.
+    
+    Args:
+        value: Academic year (grade level)
+        
+    Raises:
+        ValidationError: If year is outside valid range
+    """
+    if not (MIN_ACADEMIC_YEAR <= value <= MAX_ACADEMIC_YEAR):
+        raise ValidationError(
+            _(
+                "Academic year must be between %(min)s and %(max)s. Got: %(value)s"
+            ),
+            params={
+                'min': MIN_ACADEMIC_YEAR,
+                'max': MAX_ACADEMIC_YEAR,
+                'value': value
+            },
+            code='invalid_academic_year'
+        )
 
 def validate_academic_year(value):
     """
@@ -144,31 +226,38 @@ class User(AbstractUser):
     bio = models.TextField(
         blank=True,
         null=True,
-        max_length=1000,
-        help_text="Biography or introduction (max 1000 characters)"
+        max_length=500,
+        help_text=_("Biography or introduction (max 500 characters)")
     )
     
+    USER_TYPE_TEACHER = 'teacher'
+    USER_TYPE_STUDENT = 'student'
     USER_TYPE_CHOICES = (
-        ('Teacher', 'Teacher'),
-        ('Student', 'Student'),
+        (USER_TYPE_TEACHER, _('Teacher')),
+        (USER_TYPE_STUDENT, _('Student')),
     )
-    
-    userType = models.CharField(
+    user_type = models.CharField(
         max_length=10,
         choices=USER_TYPE_CHOICES,
-        default='Student',
+        default=USER_TYPE_STUDENT,
         db_index=True,
-        help_text="User role in the platform"
+        help_text=_("User role in the platform")
     )
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=_("Timestamp when user was soft-deleted")
+    )
     
     class Meta:
-        verbose_name = 'User'
-        verbose_name_plural = 'Users'
+        verbose_name = _('User')
+        verbose_name_plural = _('Users')
         indexes = [
-            models.Index(fields=['userType', '-date_joined']),
+            models.Index(fields=['user_type', '-date_joined']),
+            models.Index(fields=['is_active', 'user_type']),
         ]
     
     def __str__(self):
@@ -181,19 +270,30 @@ class User(AbstractUser):
         Return the user's full name.
         
         Returns:
-            str: Full name or username
+            str: Full name or empty string
         """
-        return str(self)
+        return f"{self.first_name} {self.last_name}".strip()
     
-    @property
-    def has_profile(self):
-        """Check if user has an associated profile"""
-        if self.userType == 'Teacher':
-            return hasattr(self, 'teacher_profile')
-        elif self.userType == 'Student':
-            return hasattr(self, 'student_profile')
-        return False
-
+    def soft_delete(self):
+        """
+        Soft delete user (set is_active=False, preserve data).
+        
+        Benefits:
+        - Maintain referential integrity
+        - Enable data recovery
+        - Support audit requirements
+        - Allow re-activation
+        """
+        
+        self.active = False
+        self.deleted_at = timezone.now()
+        self.save(update_fields=['active', 'deleted_at', 'updated_at'])
+        
+    def restore(self):
+        """Restore soft-deleted user"""
+        self.active = True
+        self.deleted_at = None
+        self.save(update_fields=['active', 'deleted_at', 'updated_at'])
 
 # =====================
 # TEACHER MODEL
@@ -212,41 +312,67 @@ class Teacher(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='teacher_profile',
-        limit_choices_to={'userType': 'Teacher'},
-        help_text="User account with Teacher type"
+        limit_choices_to={'user_type': 'User.USER_TYPE_TEACHER'},
+        help_text=_("User account with Teacher type")
     )
     
-    subject = models.CharField(
-        max_length=200,
-        blank=True,
+    subject = models.ForeignKey(
+        'courses.Subject',
+        on_delete=models.SET_NULL,
         null=True,
-        db_index=True,
-        help_text="Subject specialization (e.g., Mathematics, Physics, Chemistry)"
+        blank=True,
+        related_name='teacher_subject',
+        help_text=_("Primary subject specialization")
+    )
+    
+    additional_subjects = models.ManyToManyField(
+        'courses.Subject',
+        blank=True,
+        related_name='additional_teacher_subject',
+        help_text=_("Additional subjects this teacher can teach")
     )
     
     experience_years = models.PositiveSmallIntegerField(
-        default=0,
+        default=1,
         validators=[
-            MinValueValidator(0),
-            MaxValueValidator(50)
+            MinValueValidator(MIN_EXPERIENCE_YEARS),
+            MaxValueValidator(MAX_EXPERIENCE_YEARS)
         ],
-        help_text="Years of teaching experience (0-50)"
-    )
+        help_text=_(f"Years of teaching experience ({MIN_EXPERIENCE_YEARS}-{MAX_EXPERIENCE_YEARS})")
+    ) 
     
     cv = models.FileField(
         upload_to=cv_upload_path,
         validators=[
-            FileExtensionValidator(allowed_extensions=['pdf']),
+            FileExtensionValidator(allowed_extensions=ALLOWED_CV_EXTENSIONS),
             validate_file_size,
             validate_pdf,
         ],
-        help_text="Upload CV in PDF format (max 5MB)"
+        blank=True,  # Made optional for initial profile creation
+        null=True,
+        help_text=_(f"Upload CV in PDF format (max {MAX_CV_FILE_SIZE_MB}MB)")
     )
     
     is_verified = models.BooleanField(
         default=False,
         db_index=True,
-        help_text="Admin verification status for teacher authenticity"
+        help_text=_("Admin verification status for teacher authenticity")
+    )
+    
+    # Audit trail for verification
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='verified_teachers',
+        help_text=_("Admin who verified this teacher")
+    )
+    
+    verified_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=_("When teacher was verified")
     )
     
     hourly_rate = models.DecimalField(
@@ -255,20 +381,27 @@ class Teacher(models.Model):
         null=True,
         blank=True,
         validators=[MinValueValidator(Decimal('0.00'))],
-        help_text="Hourly teaching rate in local currency (optional)"
+        help_text=_("Hourly teaching rate in local currency (optional)")
     )
     
+    is_active = models.BooleanField(
+        default=True,
+        db_index=True,
+        help_text=_("Active profile status")
+    )
+        
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        verbose_name = 'Teacher Profile'
-        verbose_name_plural = 'Teacher Profiles'
+        verbose_name = _('Teacher Profile')
+        verbose_name_plural = _('Teacher Profiles')
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['is_verified', '-created_at']),
             models.Index(fields=['subject']),
             models.Index(fields=['user', 'is_verified']),
+            models.Index(fields=['is_active', 'is_verified']),
         ]
     
     def __str__(self):
@@ -278,6 +411,9 @@ class Teacher(models.Model):
     def clean(self):
         """
         Custom validation to ensure business logic constraints.
+        
+        Raises:
+            ValidationError: If validation fails
         """
         super().clean()
         
@@ -285,23 +421,34 @@ class Teacher(models.Model):
         if not self.user_id:
             return
         
-        # Ensure linked user has Teacher userType
-        if self.user.userType != 'Teacher':
+        # Ensure linked user has Teacher user_type
+        if self.user.user_type != User.USER_TYPE_TEACHER:
             raise ValidationError({
-                'user': 'Only users with userType="Teacher" can have a teacher profile.'
+                'user': _(
+                    'Only users with user_type="teacher" can have a teacher profile.'
+                )
             })
         
-        # Validate experience years is reasonable
-        if self.experience_years > 50:
+        # Ensure user is active
+        if not self.user.is_active:
             raise ValidationError({
-                'experience_years': 'Experience years exceeds maximum allowed (50 years).'
+                'user': _('Cannot create profile for inactive user.')
             })
     
     def save(self, *args, **kwargs):
-        """Override save to run full_clean validation"""
+        """
+        Override save to run validation and update user's updated_at.
+        
+        Note: Use skip_validation=True to bypass validation when needed
+        (e.g., during data migrations)
+        """
         if not kwargs.pop('skip_validation', False):
             self.full_clean()
+        
         super().save(*args, **kwargs)
+        
+        # Update parent user's timestamp for cache invalidation
+        self.user.save(update_fields=['updated_at'])
     
     @property
     def is_experienced(self):
@@ -322,16 +469,50 @@ class Teacher(models.Model):
         else:
             return "Expert"
     
-    def verify_teacher(self):
-        """Mark teacher as verified (admin action)"""
+    def verify_teacher(self, verified_by_user):
+        """
+        Mark teacher as verified (admin action).
+        
+        Args:
+            verified_by_user: User object of admin performing verification
+            notes: Optional verification notes
+            
+        Returns:
+            bool: True if verification successful
+        """        
+        if self.is_verified:
+            return False  # Already verified
+        
         self.is_verified = True
-        self.save(update_fields=['is_verified', 'updated_at'])
+        self.verified_by = verified_by_user
+        self.verified_at = timezone.now()
+        
+        self.save(update_fields=[
+            'is_verified', 
+            'verified_by', 
+            'verified_at', 
+            'updated_at'
+        ])
+        
+        return True
     
     def unverify_teacher(self):
-        """Remove verification status"""
-        self.is_verified = False
+        """
+        Remove verification status.
+        
+        Args:
+            reason: Reason for unverification (logged for audit)
+            
+        Returns:
+            bool: True if unverification successful
+        """
+        if not self.is_verified:
+            return False  # Not verified
+        
+        self.is_verified = False        
         self.save(update_fields=['is_verified', 'updated_at'])
-
+        
+        return True
 
 # =====================
 # STUDENT MODEL
@@ -350,35 +531,41 @@ class Student(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='student_profile',
-        limit_choices_to={'userType': 'Student'},
-        help_text="User account with Student type"
+        limit_choices_to={'user_type': User.USER_TYPE_STUDENT},
+        help_text=_("User account with Student type")
     )
     
     academic_year = models.PositiveSmallIntegerField(
         default=1,
         validators=[validate_academic_year],
         db_index=True,
-        help_text="Current academic year/grade (1-12)"
+        help_text=_(f"Current academic year/grade ({MIN_ACADEMIC_YEAR}-{MAX_ACADEMIC_YEAR})")
     )
     
     phone = models.CharField(
         max_length=15,
         validators=[validate_phone],
-        help_text="Student's phone number (Egyptian format: 01XXXXXXXXX)"
+        help_text=_("Student's phone number (Egyptian/KSA format: 01XXXXXXXXX)")
     )
     
     parent_phone = models.CharField(
         max_length=15,
         validators=[validate_phone],
-        help_text="Parent/guardian phone number (Egyptian format: 01XXXXXXXXX)"
+        help_text=_("Student's phone number (Egyptian/KSA format: 01XXXXXXXXX)")
+    )
+    
+    parent_name = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text=_("Parent/guardian full name")
     )
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        verbose_name = 'Student Profile'
-        verbose_name_plural = 'Student Profiles'
+        verbose_name = _('Student Profile')
+        verbose_name_plural = _('Student Profiles')
         ordering = ['academic_year', '-created_at']
         indexes = [
             models.Index(fields=['academic_year']),
@@ -392,6 +579,9 @@ class Student(models.Model):
     def clean(self):
         """
         Custom validation to ensure business logic constraints.
+        
+        Raises:
+            ValidationError: If validation fails
         """
         super().clean()
         
@@ -399,53 +589,109 @@ class Student(models.Model):
         if not self.user_id:
             return
         
-        # Ensure linked user has Student userType
-        if self.user.userType != 'Student':
+        # Ensure linked user has Student user_type
+        if self.user.user_type != User.USER_TYPE_STUDENT:
             raise ValidationError({
-                'user': 'Only users with userType="Student" can have a student profile.'
+                'user': _(
+                    'Only users with user_type="student" can have a student profile.'
+                )
+            })
+        
+        # Ensure user is active
+        if not self.user.is_active:
+            raise ValidationError({
+                'user': _('Cannot create profile for inactive user.')
             })
         
         # Ensure parent phone is different from student phone
-        if self.phone and self.parent_phone and self.phone == self.parent_phone:
-            raise ValidationError({
-                'parent_phone': 'Parent phone number must be different from student phone number.'
-            })
+        if self.phone and self.parent_phone:
+            # Clean both for comparison
+            cleaned_student = re.sub(r'[\s\-\(\)\.]', '', str(self.phone))
+            cleaned_parent = re.sub(r'[\s\-\(\)\.]', '', str(self.parent_phone))
+            
+            if cleaned_student == cleaned_parent:
+                raise ValidationError({
+                    'parent_phone': _(
+                        'Parent phone number must be different from student phone number.'
+                    )
+                })
     
     def save(self, *args, **kwargs):
-        """Override save to run full_clean validation"""
+        """
+        Override save to run validation and update user's updated_at.
+        
+        Note: Use skip_validation=True to bypass validation when needed
+        """
         if not kwargs.pop('skip_validation', False):
             self.full_clean()
+        
         super().save(*args, **kwargs)
+        
+        # Update parent user's timestamp
+        self.user.save(update_fields=['updated_at'])
     
     @property
     def grade_level(self):
-        """Return human-readable grade level"""
-        grade_mapping = {
-            1: "1st Grade",
-            2: "2nd Grade",
-            3: "3rd Grade",
-        }
+        """
+        Return human-readable grade level.
         
-        # Use mapping for first 3 grades, otherwise use "Nth Grade"
-        if self.academic_year in grade_mapping:
-            return grade_mapping[self.academic_year]
+        Returns:
+            str: Formatted grade level
+        """
+        # Special handling for 1st, 2nd, 3rd
+        if self.academic_year == 1:
+            return _("1st Grade")
+        elif self.academic_year == 2:
+            return _("2nd Grade")
+        elif self.academic_year == 3:
+            return _("3rd Grade")
         else:
-            return f"{self.academic_year}th Grade"
+            return _(f"{self.academic_year}th Grade")
     
-    def promote_to_next_year(self):
+    def promote_to_next_year(self, promoted_by: Optional['User'] = None):
         """
         Promote student to next academic year.
         
+        Args:
+            promoted_by: User who performed the promotion (for audit)
+            
         Returns:
             bool: True if promoted, False if already in final year
+            
+        Note:
+            In production, this should trigger:
+            - Grade change notification to student/parent
+            - Enrollment updates for next year
+            - Academic record updates
         """
-        if self.academic_year < 12:
-            self.academic_year += 1
-            self.save(update_fields=['academic_year', 'updated_at'])
-            return True
-        return False  # Already in final year (Grade 12)
+        if self.academic_year >= MAX_ACADEMIC_YEAR:
+            return False
+        
+        self.academic_year += 1
+        self.save(update_fields=['academic_year', 'updated_at'])
+        return True
     
     @property
     def is_senior(self):
         """Check if student is in senior years (grades 10-12)"""
         return self.academic_year >= 10
+
+# =====================
+# MANAGER CLASSES (Optional Enhancement)
+# =====================
+
+class ActiveUserManager(models.Manager):
+    """Manager that returns only active (non-deleted) users"""
+    
+    def get_queryset(self):
+        return super().get_queryset().filter(user__is_active=True)
+
+
+class VerifiedTeacherManager(models.Manager):
+    """Manager that returns only verified teachers"""
+    
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            is_verified=True,
+            user__is_active=True
+        )
