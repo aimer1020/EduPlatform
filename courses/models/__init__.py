@@ -2,3 +2,4 @@
 
 from .course_models import *
 from .lesson_models import *
+from .interactionCourse_models import *
