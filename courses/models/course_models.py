@@ -379,7 +379,7 @@ class Course(models.Model):
     @property
     def enrollment_count(self):
         """Total enrollements"""
-        return self.course_enrollments.filter(is_active=True).count() if hasattr(self, 'students_enrollments') else 0
+        return self.course_enrollments.filter(status='active').count() if hasattr(self, 'students_enrollments') else 0
     
     @property
     def enrolled_students(self):
@@ -394,7 +394,7 @@ class Course(models.Model):
         Course.objects.annotate(total_revenue=Sum('enrollments__price_paid'))
         """
         result = self.course_enrollments.filter(
-            is_active=True
+            status='active'
         ).aggregate(total=Sum('price_paid'))
         return result['total'] or Decimal('0.00')
     
@@ -499,7 +499,7 @@ class Course(models.Model):
         if Enrollment.objects.filter(
             student=student,
             course=self,
-            is_active=True
+            status=Enrollment.STATUS_ACTIVE
         ).exists():
             return False, _("You are already enrolled in this course")
         # All checks passed
