@@ -20,7 +20,7 @@ A learning platform for primary and preparatory students following Egyptian and 
 - [Acknowledgements](#acknowledgements)
 - [FAQ / Troubleshooting](#faq--troubleshooting)
 
----
+------
 
 ## About
 EduPlatform is an educational web platform designed to support students in primary and preparatory school.  
@@ -28,7 +28,7 @@ It provides curriculum content for both the Egyptian and Saudi educational syste
 
 Built with **Python**, **Django**, and modern web technologies, it targets students, teachers, and schools who want a structured digital learning experience.
 
----
+------
 
 ## Features
 - Interactive lessons for Egyptian and Saudi curricula  
@@ -43,9 +43,19 @@ Built with **Python**, **Django**, and modern web technologies, it targets stude
 - Custom validation for BDF and phone numbers
 - Teacher-specific fields: subject specialization, experience, CV, verification status
 - Student-specific fields: academic year, contact information, and parent/guardian details
+- Modular course management system
+- Structured academic hierarchy:
+  - Education Level
+  - Subject
+  - Course
+  - Chapter
+  - Lesson
+- Custom validators for course-related data
+- Organized model structure (lesson_models.py & course_models.py)
 
 
----
+
+------
 
 ## Models-Overview
 
@@ -70,14 +80,40 @@ Built with **Python**, **Django**, and modern web technologies, it targets stude
      - Academic year
      - Contact information
      - Parent/guardian details
+    
+   
+------
+## Courses Architecture
+The courses app is designed with a modular structure for better scalability and maintainability.
 
+   ### Model Structure
+   - lesson_models.py
+     - Custom validators
+     - Lesson model
 
+   - course_models.py
+     - Custom validators
+     - Upload path helper functions
+     - Education model
+     - Subject model
+     - Course model
+     - Chapter model
+
+### Academic Hierarchy
+
+Education → Subject → Course → Chapter → Lesson
+
+This hierarchy ensures structured content organization aligned with
+Egyptian and Saudi curricula.
+------
 ## Installation
 1. Clone the repository:
    ```bash
    git clone https://github.com/username/EduPlatform.git
 
 ## API documentation
+API layer will be implemented using Django REST Framework.
+
    ### Users API (planned)
    - **POST /api/users/register/** - Register new user
    - **GET /api/users/{id}/** - Retrieve user profile
