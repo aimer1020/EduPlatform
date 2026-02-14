@@ -52,19 +52,22 @@ Built with **Python**, **Django**, and modern web technologies, it targets stude
   - Lesson
 - Custom validators for course-related data
 - Organized model structure (lesson_models.py & course_models.py)
-
+- Robust user system with extended User model and role-based classification
+- Optimized profile models with strong validation and data integrity
+- 
 
 
 ------
 
 ## Models-Overview
 
-   ### User
-   - Extends Django's AbstractUser
-   - Adds:
-     - User type (Teacher/Student)
-     - Biography
-     - Timestamps (created_at, updated_at)
+   ### User System
+    The user system is built on a custom User model extending Django's AbstractUser.
+    Key enhancements:
+    - Role-based classification (Teacher / Student)
+    - Custom validators
+    - Optimized relationships using OneToOne profiles
+    - Improved data integrity and scalability design
 
    ### TeacherProfile
    - Linked OneToOne to User
