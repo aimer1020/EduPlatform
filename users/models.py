@@ -274,6 +274,14 @@ class Teacher(models.Model):
         else:
             return "Expert"
     
+    @property
+    def active_courses(self):
+        return self.teacher_courses.filter(is_active=True)
+    
+    @property
+    def courses_count(self):
+        return self.active_courses.count()
+    
     def verify_teacher(self, verified_by_user):
         """
         Mark teacher as verified (admin action).
@@ -318,6 +326,7 @@ class Teacher(models.Model):
         self.save(update_fields=['is_verified', 'updated_at'])
         
         return True
+    
 
 # =====================
 # STUDENT MODEL
@@ -480,6 +489,10 @@ class Student(models.Model):
     def is_senior(self):
         """Check if student is in senior years (grades 10-12)"""
         return self.academic_year >= 10
+    
+    @property
+    def enrolled_courses_count(self):
+        return self.enrollments.filter(course__is_active=True).count()
 
 # =====================
 # MANAGER CLASSES (Optional Enhancement)
