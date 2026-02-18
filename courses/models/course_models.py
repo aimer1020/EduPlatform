@@ -2,15 +2,15 @@ from decimal import Decimal
 from django.db import models
 from django.db.models import Avg, Count, Q, Sum
 from django.conf import settings
-from django.core.exceptions import ValidationError  # ✅ FIXED: was django.forms
+from django.core.exceptions import ValidationError  
 from django.utils.translation import gettext_lazy as _
-from django.utils.text import slugify  # ✅ ADDED: was missing
+from django.utils.text import slugify 
 from django.core.validators import (
     MinValueValidator,
     MaxValueValidator,
     FileExtensionValidator
 )
-from django.utils import timezone  # ✅ Already correct
+from django.utils import timezone  
 
 from ..validators import *
 from users.models import Teacher, Student
