@@ -1,4 +1,3 @@
-from datetime import timezone
 import os
 import uuid
 from PIL import Image
@@ -7,6 +6,7 @@ from django.conf import settings
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 
 # =====================
