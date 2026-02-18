@@ -117,7 +117,7 @@ class Teacher(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='teacher_profile',
-        limit_choices_to={'user_type': 'User.USER_TYPE_TEACHER'},
+        limit_choices_to={'user_type': User.USER_TYPE_TEACHER},
         help_text=_("User account with Teacher type")
     )
     
