@@ -2,17 +2,18 @@ from decimal import Decimal
 from django.db import models
 from django.db.models import Avg, Count, Q, Sum
 from django.conf import settings
-from django.forms import ValidationError
+from django.core.exceptions import ValidationError  # ✅ FIXED: was django.forms
 from django.utils.translation import gettext_lazy as _
+from django.utils.text import slugify  # ✅ ADDED: was missing
 from django.core.validators import (
     MinValueValidator,
     MaxValueValidator,
     FileExtensionValidator
 )
+from django.utils import timezone  # ✅ Already correct
+
 from ..validators import *
-from users.models import (
-    Teacher, Student
-)
+from users.models import Teacher, Student
 
 User = settings.AUTH_USER_MODEL
 
@@ -499,9 +500,10 @@ class Course(models.Model):
         if Enrollment.objects.filter(
             student=student,
             course=self,
-            status=Enrollment.STATUS_ACTIVE
+            status='active'  # ✅ FIXED: Use string directly
         ).exists():
             return False, _("You are already enrolled in this course")
+        
         # All checks passed
         return True, ""
     
