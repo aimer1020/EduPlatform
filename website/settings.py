@@ -28,6 +28,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+import tempfile
+MEDIA_ROOT = tempfile.mkdtemp()
 
 # Application definition
 
