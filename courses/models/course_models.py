@@ -256,6 +256,8 @@ class Course(models.Model):
     
     course_img = models.ImageField(
         upload_to=course_image_path,
+        null=True,
+        blank=True,
         validators=[
             FileExtensionValidator(allowed_extensions=ALLOWED_IMAGE_EXTENSIONS),
             validate_image_size,
