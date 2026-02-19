@@ -221,6 +221,8 @@ class Course(models.Model):
     
     education = models.ForeignKey(
         Education,
+        null=True,
+        blank=True,
         on_delete=models.CASCADE,
         related_name='education_courses',
         help_text=_("Education system this course belongs to")
@@ -436,7 +438,7 @@ class Course(models.Model):
         Returns:
             bool: True if published, False if already published
         """
-        if self.is_published:
+        if self.is_published or not self.is_active:
             return False
         
         self.is_published = True
@@ -468,6 +470,7 @@ class Course(models.Model):
     
     def deactivate(self):
         """Deactivate course"""
+        self.unpublish(commit=True)  # Unpublish before deactivating
         self.is_active = False
         self.save(update_fields=['is_active', 'updated_at'])
         
