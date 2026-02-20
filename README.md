@@ -10,11 +10,11 @@ A learning platform for primary and preparatory students following Egyptian and 
 - [About](#about)
 - [Features](#features)
 - [Models Overview](#Models-Overview)
-- [Installation](#installation)
-- [Usage](#usage)
+- [Installation](#Courses-Architecture)
+- [Usage](#Installation)
 - [API Documentation](#api-documentation)
-- [Screenshots](#screenshots)
-- [Contributing](#contributing)
+- [Contributing](#API-Architecture)
+- [Screenshots](#Testing)
 - [License](#license)
 - [Roadmap](#roadmap)
 - [Acknowledgements](#acknowledgements)
@@ -54,8 +54,10 @@ Built with **Python**, **Django**, and modern web technologies, it targets stude
 - Organized model structure (lesson_models.py & course_models.py)
 - Robust user system with extended User model and role-based classification
 - Optimized profile models with strong validation and data integrity
-- 
-
+- RESTful Course API built with Django REST Framework
+- Structured serializers and views architecture
+- Unit tests for models and API endpoints
+- Scalable API structure ready for expansion
 
 ------
 
@@ -85,7 +87,8 @@ Built with **Python**, **Django**, and modern web technologies, it targets stude
      - Parent/guardian details
     
    
-------
+-----------------
+
 ## Courses Architecture
 The courses app is designed with a modular structure for better scalability and maintainability.
 
@@ -102,17 +105,20 @@ The courses app is designed with a modular structure for better scalability and 
      - Course model
      - Chapter model
 
-### Academic Hierarchy
+  ### Academic Hierarchy
 
-Education → Subject → Course → Chapter → Lesson
+    Education → Subject → Course → Chapter → Lesson
 
-This hierarchy ensures structured content organization aligned with
-Egyptian and Saudi curricula.
+    This hierarchy ensures structured content organization aligned with
+    Egyptian and Saudi curricula.
 ------
+
 ## Installation
 1. Clone the repository:
    ```bash
    git clone https://github.com/username/EduPlatform.git
+
+----------------------
 
 ## API documentation
 API layer will be implemented using Django REST Framework.
@@ -123,4 +129,51 @@ API layer will be implemented using Django REST Framework.
    - **PUT /api/users/{id}/** - Update user profile
    - **GET /api/teachers/** - List all teachers
    - **GET /api/students/** - List all students
+
+## Course API
+
+Base URL: courses/apis/courses/
+
+### Endpoints
+
+- **GET courses/apis/courses/**  
+  Retrieve list of courses
+
+- **POST courses/apis/courses/**  
+  Create a new course
+
+- **GET courses/apis/courses/{id}/**  
+  Retrieve a specific course
+
+- **PUT courses/apis/courses/{id}/**  
+  Update a course
+
+- **DELETE courses/apis/courses/{id}/**  
+  Delete a course
+
+---------------------------------------------------------
+
+## API Architecture
+
+The API layer follows a modular structure:
+
+- course_serializers.py → Data serialization & validation
+- course_view.py → API logic and endpoints
+- tests/ → Model and API test coverage
+
+This structure ensures maintainability and scalability.
+
+-----------------
+
+## Testing
+
+The project includes automated tests for:
+
+- Course model validation
+- Course API endpoints
+
+Run tests using:
+```bash
+python manage.py test
+-------------------------------
 
