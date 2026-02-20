@@ -14,7 +14,7 @@ A learning platform for primary and preparatory students following Egyptian and 
 - [Installation](#Installation)
 - [API Documentation](#api-documentation)
 - [API Architecture](#API-Architecture)
-- [Security & Permissions](#Security-&-Permissions)
+- [Security & Permissions](#Security-and-Permissions)
 - [Testing](#Testing)
 - [Roadmap](#roadmap)
 - [Acknowledgements](#acknowledgements)
@@ -168,7 +168,7 @@ This structure ensures maintainability and scalability.
 
 -----------------
 
-## Security & Permissions
+## Security and Permissions
 
 The platform implements role-based access control using custom
 Django REST Framework permission classes.
