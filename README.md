@@ -14,8 +14,8 @@ A learning platform for primary and preparatory students following Egyptian and 
 - [Installation](#Installation)
 - [API Documentation](#api-documentation)
 - [API Architecture](#API-Architecture)
+- [Security & Permissions](#Security-&-Permissions)
 - [Testing](#Testing)
-- [License](#license)
 - [Roadmap](#roadmap)
 - [Acknowledgements](#acknowledgements)
 - [FAQ / Troubleshooting](#faq--troubleshooting)
@@ -58,6 +58,9 @@ Built with **Python**, **Django**, and modern web technologies, it targets stude
 - Structured serializers and views architecture
 - Unit tests for models and API endpoints
 - Scalable API structure ready for expansion
+- - Role-based access control using custom permission classes
+- Secure API endpoints with authorization rules
+- Permission test coverage to ensure access integrity
 
 ------
 
@@ -165,15 +168,28 @@ This structure ensures maintainability and scalability.
 
 -----------------
 
+## Security & Permissions
+
+The platform implements role-based access control using custom
+Django REST Framework permission classes.
+
+- Teachers and Students have differentiated access
+- API endpoints are protected based on user role
+- Unauthorized access is properly restricted
+- Permission behavior is covered by automated tests
+
+This ensures secure and structured access management.
+-------------------
+
 ## Testing
 
 The project includes automated tests for:
 
 - Course model validation
 - Course API endpoints
+- Custom user permissions
 
 Run tests using:
 ```bash
 python manage.py test
 -------------------------------
-
