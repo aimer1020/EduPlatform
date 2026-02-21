@@ -36,7 +36,6 @@ class TeacherSerializerTests(APITestCase):
 
     def test_update_teacher(self):
         factory = APIRequestFactory()
-    
         request = factory.patch('/')
         request.user = self.teacher_user
 

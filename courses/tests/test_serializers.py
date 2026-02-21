@@ -34,7 +34,7 @@ class CourseSerializerTests(APITestCase):
         serializer = CourseListSerializer(self.course1)
         self.assertEqual(serializer.data["title"], self.course1.title)
         self.assertEqual(serializer.data["price"], "100.00")
-        self.assertEqual(serializer.data["teacher_name"], self.user1.get_full_name())
+        self.assertEqual(serializer.data["teacher_name"], self.user1.username)
 
     def test_course_detail_serializer(self):
         serializer = CourseDetailSerializer(self.course1)

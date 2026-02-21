@@ -5,6 +5,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from courses.models.course_models import Course
 from users.models import Teacher
 from courses.Serializers.course_serializers import CourseListSerializer, CourseDetailSerializer
+from django.urls import reverse
 
 User = get_user_model()
 
@@ -39,16 +40,19 @@ class CourseViewSetTests(APITestCase):
         self.client = APIClient()
 
     def test_list_permissions_allow_any(self):
-        response = self.client.get("/courses/apis/courses/")
+        url = reverse("course-list")
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_retrieve_permissions_allow_any(self):
-        response = self.client.get(f"/courses/apis/courses/{self.course1.id}/")
+        url = reverse("course-detail", kwargs={"pk": self.course1.id})
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_create_permissions_authenticated(self):
+        url = reverse("course-list")
         # Unauthenticated user
-        response = self.client.post("/courses/apis/courses/", {
+        response = self.client.post(url, {
             "title": "New Course",
             "description": "New course description",
             "price": 50
@@ -57,7 +61,7 @@ class CourseViewSetTests(APITestCase):
 
         # Authenticated user
         self.client.force_authenticate(user=self.user1)
-        response = self.client.post("/courses/apis/courses/", {
+        response = self.client.post(url, {
             "title": "New Course",
             "description": "New course description",
             "price": 50
@@ -65,14 +69,15 @@ class CourseViewSetTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_update_permissions_owner_only(self):
+        url = reverse("course-detail", kwargs={"pk": self.course1.id})
         self.client.force_authenticate(user=self.user2)
-        response = self.client.put(f"/courses/apis/courses/{self.course1.id}/", {
+        response = self.client.put(url, {
             "title": "Updated Title"
         })
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         self.client.force_authenticate(user=self.user1)
-        response = self.client.put(f"/courses/apis/courses/{self.course1.id}/", {
+        response = self.client.put(url , {
             "title": "Updated Title",
             "description": "Updated Description",
             "price": 150
@@ -84,41 +89,47 @@ class CourseViewSetTests(APITestCase):
         self.assertEqual(self.course1.price, 150)
 
     def test_delete_permissions_owner_only(self):
+        
+        url = reverse("course-detail", kwargs={"pk": self.course1.id})
         self.client.force_authenticate(user=self.user2)
-        response = self.client.delete(f"/courses/apis/courses/{self.course1.id}/")
+        response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         self.client.force_authenticate(user=self.user1)
-        response = self.client.delete(f"/courses/apis/courses/{self.course1.id}/")
+        response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_list_serializer_logic(self):
+        url = reverse("course-list")
         self.client.force_authenticate(user=self.user1)
-        response = self.client.get("/courses/apis/courses/")
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data[0].keys(), CourseListSerializer(self.course1).data.keys())
 
     def test_retrieve_serializer_logic(self):
+        url = reverse("course-detail", kwargs={"pk": self.course1.id})
         self.client.force_authenticate(user=self.user1)
-        response = self.client.get(f"/courses/apis/courses/{self.course1.id}/")
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data.keys(), CourseDetailSerializer(self.course1).data.keys())
 
     def test_queryset_filtering(self):
+        url = reverse("course-list")
         # Anonymous user
-        response = self.client.get("/courses/apis/courses/")
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)  # Only published courses
 
         # Authenticated teacher
         self.client.force_authenticate(user=self.user1)
-        response = self.client.get("/courses/apis/courses/")
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)  # All courses for the teacher
 
     def test_perform_create_teacher_assignment(self):
+        url = reverse("course-list")
         self.client.force_authenticate(user=self.user1)
-        response = self.client.post("/courses/apis/courses/", {
+        response = self.client.post(url, {
             "title": "New Course",
             "description": "New course description",
             "price": 50,
@@ -128,8 +139,9 @@ class CourseViewSetTests(APITestCase):
         self.assertEqual(response.data["teacher"], self.teacher1.id)  # Ensure teacher1 is set
 
     def test_search_filter(self):
+        url = reverse("course-list")
         self.client.force_authenticate(user=self.user1)
-        response = self.client.get("/courses/apis/courses/?search=Course 1")
+        response = self.client.get(url + "?search=Course 1")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Ensure only one course matches the search query
@@ -138,8 +150,9 @@ class CourseViewSetTests(APITestCase):
         self.assertEqual(matching_courses[0]["title"], "Course 1")
 
     def test_ordering_filter(self):
+        url = reverse("course-list")
         self.client.force_authenticate(user=self.user1)
-        response = self.client.get("/courses/apis/courses/?ordering=-price")
+        response = self.client.get(url + "?ordering=-price")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Ensure the courses are ordered by price in descending order
@@ -147,8 +160,9 @@ class CourseViewSetTests(APITestCase):
         self.assertEqual(prices, ["200.00", "100.00"])
 
     def test_partial_update(self):
+        url = reverse("course-detail", kwargs={"pk": self.course1.id})
         self.client.force_authenticate(user=self.user1)
-        response = self.client.patch(f"/courses/apis/courses/{self.course1.id}/", {
+        response = self.client.patch(url, {
             "title": "Partially Updated Title"
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -156,8 +170,9 @@ class CourseViewSetTests(APITestCase):
         self.assertEqual(self.course1.title, "Partially Updated Title")
 
     def test_update_nonexistent_course(self):
+        url = reverse("course-detail", kwargs={"pk": 9999})
         self.client.force_authenticate(user=self.user1)
-        response = self.client.put("/courses/apis/courses/9999/", {
+        response = self.client.put(url, {
             "title": "Nonexistent Course"
         })
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
