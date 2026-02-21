@@ -59,7 +59,7 @@ Built with **Python**, **Django**, and modern web technologies, it targets stude
 - Admin full access
 - Custom permission classes
 
-### Testing
+### Testing Features
 - Model tests
 - API endpoint tests
 - Serializer tests
