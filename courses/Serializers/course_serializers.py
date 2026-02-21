@@ -46,7 +46,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             return None
 
 class CourseListSerializer(serializers.ModelSerializer):
-    teacher_name = serializers.ReadOnlyField(source='teacher.user.get_full_name')
+    teacher_name = serializers.StringRelatedField(read_only=True, source='teacher')
     class Meta:
         model = Course
         fields = ['id', 'title', 'subject', 'price', 'course_img', 'is_published', 'is_active', 'teacher_name']

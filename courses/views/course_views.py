@@ -33,9 +33,9 @@ class CourseViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'list':
             return CourseListSerializer
-        if self.action == 'retrieve':
+        elif self.action == 'retrieve':
             return CourseDetailSerializer
-        if self.action in ['create', 'update', 'partial_update']:
+        elif self.action in ['create', 'update', 'partial_update']:
             return CourseCreateUpdateSerializer
         return CourseDetailSerializer  # Default serializer
 

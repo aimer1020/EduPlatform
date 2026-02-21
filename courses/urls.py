@@ -8,5 +8,5 @@ router = DefaultRouter()
 router.register(r'courses', CourseViewSet, basename='course')
 
 urlpatterns = [
-    path('apis/', include(router.urls)),
+    path('course-api/', include(router.urls)),
 ]
