@@ -9,85 +9,87 @@ A learning platform for primary and preparatory students following Egyptian and 
 ## Table of Contents
 - [About](#about)
 - [Features](#features)
-- [Models Overview](#Models-Overview)
-- [Courses Architecture](#Courses-Architecture)
-- [Installation](#Installation)
+- [Models Overview](#models-overview)
+- [Courses Architecture](#courses-architecture)
+- [Installation](#installation)
 - [API Documentation](#api-documentation)
-- [API Architecture](#API-Architecture)
-- [Security & Permissions](#Security-and-Permissions)
-- [Testing](#Testing)
-- [Roadmap](#roadmap)
+- [API Architecture](#api-architecture)
+- [Security and Permissions](#security-and-permissions)
+- [Access Control Strategy](#access-control-strategy)
+- [Testing](#testing)
 - [Acknowledgements](#acknowledgements)
 - [FAQ / Troubleshooting](#faq--troubleshooting)
 
 ------
 
 ## About
-EduPlatform is an educational web platform designed to support students in primary and preparatory school.  
-It provides curriculum content for both the Egyptian and Saudi educational systems, interactive lessons, exercises, quizzes, and progress tracking.  
+EduPlatform is a backend-powered educational platform built using Python and Django.
+It is designed to deliver structured curriculum content for Egyptian and Saudi educational systems, providing a scalable and secure REST API for managing users, courses, and academic content.
+The system supports Students, Teachers, and Admin roles with strict access control and modular architecture.  
 
 Built with **Python**, **Django**, and modern web technologies, it targets students, teachers, and schools who want a structured digital learning experience.
 
 ------
 
 ## Features
-- Interactive lessons for Egyptian and Saudi curricula  
-- Exercises and quizzes with instant feedback  
-- User authentication and profile management (Students & Teachers)  
-- Progress tracking and performance statistics  
-- Teacher/admin panel to manage content and monitor students  
-- Multi-language support (Arabic/English)  
-- Responsive design for desktop and tablet
-- User management system with extended User model
-- Differentiated profiles for Teachers and Students
-- Custom validation for BDF and phone numbers
-- Teacher-specific fields: subject specialization, experience, CV, verification status
-- Student-specific fields: academic year, contact information, and parent/guardian details
-- Modular course management system
-- Structured academic hierarchy:
-  - Education Level
-  - Subject
-  - Course
-  - Chapter
-  - Lesson
-- Custom validators for course-related data
-- Organized model structure (lesson_models.py & course_models.py)
-- Robust user system with extended User model and role-based classification
-- Optimized profile models with strong validation and data integrity
-- RESTful Course API built with Django REST Framework
-- Structured serializers and views architecture
-- Unit tests for models and API endpoints
-- Scalable API structure ready for expansion
-- - Role-based access control using custom permission classes
-- Secure API endpoints with authorization rules
-- Permission test coverage to ensure access integrity
 
+### Educational Platform
+- Curriculum-based content (Egyptian & Saudi)
+- Structured academic hierarchy:
+  Education → Subject → Course → Chapter → Lesson
+- Interactive lessons and quizzes
+- Progress tracking and statistics
+
+### User Management
+- Custom User model extending AbstractUser
+- Role-based classification (Teacher / Student)
+- Dedicated Teacher & Student profiles
+- Custom validation (BDF, phone)
+- Profile-specific fields
+
+### REST API (Django REST Framework)
+- Full Course API (CRUD)
+- Full Teacher & Student APIs
+- Router-based endpoint structure
+- Dedicated serializers for each entity
+
+### Security
+- Role-Based Access Control (RBAC)
+- Owner-based permissions (users manage only their own data)
+- Admin full access
+- Custom permission classes
+
+### Testing
+- Model tests
+- API endpoint tests
+- Serializer tests
+- Permission tests
 ------
 
 ## Models-Overview
 
-   ### User System
-    The user system is built on a custom User model extending Django's AbstractUser.
-    Key enhancements:
-    - Role-based classification (Teacher / Student)
-    - Custom validators
-    - Optimized relationships using OneToOne profiles
-    - Improved data integrity and scalability design
+### User System
+The user system is built on a custom User model extending Django's AbstractUser.
+Key enhancements:
+  - Role-based classification (Teacher / Student)
+  - Custom validators
+  - Optimized relationships using OneToOne profiles
+  - Improved data integrity and scalability design
 
-   ### TeacherProfile
-   - Linked OneToOne to User
-   - Fields:
-     - Subject specialization
-     - Teaching experience
-     - CV upload
-     - Verification status
+### TeacherProfile
+- Linked OneToOne to User
+- Fields:
+  - Subject specialization
+  - Teaching experience
+  - CV upload
+  - Verification status
 
-   ### StudentProfile
-   - Linked OneToOne to User
-   - Fields:
-     - Academic year
-     - Contact information
-     - Parent/guardian details
+### StudentProfile
+- Linked OneToOne to User
+- Fields:
+  - Academic year
+  - Contact information
+  - Parent/guardian details
     
    
 -----------------
@@ -95,64 +97,78 @@ Built with **Python**, **Django**, and modern web technologies, it targets stude
 ## Courses Architecture
 The courses app is designed with a modular structure for better scalability and maintainability.
 
-   ### Model Structure
-   - lesson_models.py
-     - Custom validators
-     - Lesson model
+### Model Structure
+- course_models.py
+  - Custom validators
+  - Upload path helper functions
+  - Education model
+  - Subject model
+  - Course model
 
-   - course_models.py
-     - Custom validators
-     - Upload path helper functions
-     - Education model
-     - Subject model
-     - Course model
-     - Chapter model
+### Academic Hierarchy
 
-  ### Academic Hierarchy
+Education → Subject → Course → Chapter → Lesson
 
-    Education → Subject → Course → Chapter → Lesson
+This hierarchy ensures structured content organization aligned with Egyptian and Saudi curricula.
 
-    This hierarchy ensures structured content organization aligned with
-    Egyptian and Saudi curricula.
 ------
 
 ## Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/username/EduPlatform.git
 
-----------------------
+1. Clone the repository:
+```bash
+git clone https://github.com/username/EduPlatform.git
+cd EduPlatform
+
+2. Create virtual environment:
+python -m venv env        # Windows
+source env/bin/activate   # Linux/macOS
+
+-Activate environment:
+  -env\Scripts\activate      # Windows
+  -source env/bin/activate   # Linux/macOS
+
+3. Install dependencies:
+pip install -r requirements.txt
+
+4. Apply migrations:
+python manage.py migrate
+
+5. Run server:
+python manage.py runserver
+
+-----
 
 ## API documentation
-API layer will be implemented using Django REST Framework.
 
-   ### Users API (planned)
-   - **POST /api/users/register/** - Register new user
-   - **GET /api/users/{id}/** - Retrieve user profile
-   - **PUT /api/users/{id}/** - Update user profile
-   - **GET /api/teachers/** - List all teachers
-   - **GET /api/students/** - List all students
 
-## Course API
+### Users API
 
-Base URL: courses/apis/courses/
+-Base URL:
+  -Users API:  user-api/
+  -Courses API: course-api/
+Access to endpoints is restricted based on user role.
 
-### Endpoints
+### Teacher Endpoints
+- GET user-api/teachers/
+- POST user-api/teachers/
+- GET user-api/teachers/{id}/
+- PUT user-api/teachers/{id}/
+- DELETE user-api/teachers/{id}/
 
-- **GET courses/apis/courses/**  
-  Retrieve list of courses
+### Student Endpoints
+- GET user-api/students/
+- POST user-api/students/
+- GET user-api/students//{id}/
+- PUT user-api/students/{id}/
+- DELETE user-api/students/{id}/
 
-- **POST courses/apis/courses/**  
-  Create a new course
-
-- **GET courses/apis/courses/{id}/**  
-  Retrieve a specific course
-
-- **PUT courses/apis/courses/{id}/**  
-  Update a course
-
-- **DELETE courses/apis/courses/{id}/**  
-  Delete a course
+### Course Endpoints
+-GET     /course-api/courses/
+-POST    /course-api/courses/
+-GET     /course-api/courses/{id}/
+-PUT     /course-api/courses/{id}/
+-DELETE  /course-api/courses/{id}/
 
 ---------------------------------------------------------
 
@@ -160,9 +176,10 @@ Base URL: courses/apis/courses/
 
 The API layer follows a modular structure:
 
-- course_serializers.py → Data serialization & validation
-- course_view.py → API logic and endpoints
-- tests/ → Model and API test coverage
+- permissions files → access control
+- serializers files → Data serialization & validation
+- view files → API logic and endpoints
+- test files → Model, view, serializers, Permissions, and API test coverage
 
 This structure ensures maintainability and scalability.
 
@@ -177,19 +194,34 @@ Django REST Framework permission classes.
 - API endpoints are protected based on user role
 - Unauthorized access is properly restricted
 - Permission behavior is covered by automated tests
+- The system implements strict Role-Based Access Control (RBAC):
+  - Teachers can view and modify only their own profile
+  - Students can update only their own profile
+  - Admin users have unrestricted access
+  - Permissions are enforced at the API level
+  - All permission rules are covered by automated tests
 
 This ensures secure and structured access management.
+
 -------------------
+## Access Control Strategy
+
+- Ownership-based editing restrictions
+- Role verification before action execution
+- Explicit permission classes per view
+- Tested access rules to prevent privilege escalation
+
+------------------
 
 ## Testing
 
-The project includes automated tests for:
+Automated tests cover:
+- Course model
+- Course API
+- User serializers
+- Teacher and Student APIs
+- Custom permissions and role restrictions
 
-- Course model validation
-- Course API endpoints
-- Custom user permissions
-
-Run tests using:
-```bash
+Run tests:
 python manage.py test
 -------------------------------
