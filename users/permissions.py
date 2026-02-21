@@ -159,7 +159,12 @@ class IsStudentAndOwnerProfile(permissions.BasePermission):
     message = "You can only access your own profile."
 
     def has_permission(self, request, view):
+        if request.user and (request.user.is_staff or request.user.is_superuser):
+            return True
+        
         if view.action == 'create':
+            if request.user and request.user.is_authenticated:
+                return False
             return True
         return request.user and request.user.is_authenticated
 

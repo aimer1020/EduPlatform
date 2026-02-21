@@ -64,3 +64,20 @@ class StudentViewSet(viewsets.ModelViewSet):
             return queryset.filter(user=user) 
         return queryset.none()
 
+    def create(self, request, *args, **kwargs):
+        # Debugging: Log the incoming request data
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.debug(f"Incoming request data: {request.data}")
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Debugging: Log serializer errors if any
+        if serializer.errors:
+            logger.debug(f"Serializer errors: {serializer.errors}")
+
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+

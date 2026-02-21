@@ -1,3 +1,3 @@
-from .test_serializers import *
-from .test_views import *
+from .tests_serializers import *
+from .tests_views import *
 from .test_models import *

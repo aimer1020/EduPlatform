@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import User, Teacher, Student
 from django.db import transaction
+import logging
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -147,6 +148,13 @@ class StudentCreateUpdateSerializer(serializers.ModelSerializer):
             user = User.objects.create_user(**user_data)
             student = Student.objects.create(user=user, **validated_data)
         return student
+    
+    def validate(self, attrs):
+        # Debugging: Log the incoming data for validation
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.debug(f"Validating data: {attrs}")
+        return super().validate(attrs)
     
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', None)
