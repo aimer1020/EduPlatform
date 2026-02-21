@@ -136,7 +136,7 @@ python manage.py migrate
 
 5. Run server:
 python manage.py runserver
-
+```
 -----
 
 ## API documentation
@@ -223,5 +223,8 @@ Automated tests cover:
 - Custom permissions and role restrictions
 
 Run tests:
+```bash
 python manage.py test
+```
+
 -------------------------------
