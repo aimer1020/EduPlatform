@@ -65,7 +65,7 @@ class StudentViewSetTests(APITestCase):
     def setUp(self):
         self.client = APIClient()
         self.student_user = User.objects.create_user(username="student1", password="password123", user_type="student")
-        self.student = Student.objects.create(user=self.student_user, grade_level="10th")
+        self.student = Student.objects.create(user=self.student_user, academic_year="10", phone='01234567890', parent_phone='01234567891')
 
     def test_student_can_access_own_profile(self):
         self.client.force_authenticate(user=self.student_user)
@@ -76,7 +76,7 @@ class StudentViewSetTests(APITestCase):
 
     def test_student_cannot_access_other_profiles(self):
         other_student_user = User.objects.create_user(username="student2", password="password123", user_type="student")
-        other_student = Student.objects.create(user=other_student_user, grade_level="11th")
+        other_student = Student.objects.create(user=other_student_user, academic_year="8", phone='01234567892', parent_phone='01234567893')
         self.client.force_authenticate(user=self.student_user)
         url = reverse("student-detail", kwargs={"pk": other_student.id})
         response = self.client.get(url)
@@ -90,9 +90,10 @@ class StudentViewSetTests(APITestCase):
                 "email": "new_student@example.com",
                 "first_name": "New",
                 "last_name": "Student",
-                "user_type": "student"
             },
-            "grade_level": "9th"
+            "academic_year": 5,
+            "phone": "01234567890",
+            "parent_phone": "01234567891"
         }
         url = reverse("student-list")
         response = self.client.post(url, data, format="json")
@@ -122,3 +123,4 @@ class StudentViewSetTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]["id"], self.student.id)
+
