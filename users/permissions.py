@@ -151,3 +151,37 @@ class IsLessonCourseTeacherOrReadOnly(permissions.BasePermission):
             request.user.is_staff or request.user.is_superuser or
             obj.course.teacher.user_id == request.user.id
         )
+        
+class IsStudentAndOwnerProfile(permissions.BasePermission):
+    """
+    Permission to allow only students to access their own profiles.
+    """
+    message = "You can only access your own profile."
+
+    def has_permission(self, request, view):
+        if view.action == 'create':
+            return True
+        return request.user and request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        if request.user.is_staff or request.user.is_superuser:
+            return True
+        return obj.user == request.user
+    
+class IsTeacherAndOwnerProfile(permissions.BasePermission):
+    """
+    Permission to allow only teachers to access their own profiles.
+    """
+    message = "You can only access your own profile."
+
+    def has_permission(self, request, view):
+        if request.user.is_staff or request.user.is_superuser:
+            return True
+        if view.action == 'create':
+            return False
+        return request.user.is_authenticated and request.user.user_type == 'teacher'
+
+    def has_object_permission(self, request, view, obj):
+        if request.user.is_staff or request.user.is_superuser:
+            return True
+        return obj.user == request.user
