@@ -1,15 +1,26 @@
 from rest_framework import serializers
 from rest_framework.test import APITestCase
 from ..models.course_models import Course, Education, Subject
-from ..Serializers.course_serializers import CourseListSerializer, CourseDetailSerializer, CourseCreateUpdateSerializer
+from ..Serializers.course_serializers import (
+    CourseListSerializer,
+    CourseDetailSerializer,
+    CourseCreateUpdateSerializer,
+)
 from users.models import Teacher, User
+
 
 class CourseSerializerTests(APITestCase):
     def setUp(self):
         # Create users
-        self.user1 = User.objects.create_user(username="teacher1", password="password123", user_type="teacher")
-        self.user2 = User.objects.create_user(username="teacher2", password="password123", user_type="teacher")
-        self.student = User.objects.create_user(username="student", password="password123", user_type="student")
+        self.user1 = User.objects.create_user(
+            username="teacher1", password="password123", user_type="teacher"
+        )
+        self.user2 = User.objects.create_user(
+            username="teacher2", password="password123", user_type="teacher"
+        )
+        self.student = User.objects.create_user(
+            username="student", password="password123", user_type="student"
+        )
 
         # Create teacher profiles
         self.teacher1 = Teacher.objects.create(user=self.user1, is_verified=True)
@@ -27,7 +38,7 @@ class CourseSerializerTests(APITestCase):
             teacher=self.teacher1,
             education=self.education,
             subject=self.subject,
-            is_published=True
+            is_published=True,
         )
 
     def test_course_list_serializer(self):
@@ -40,10 +51,13 @@ class CourseSerializerTests(APITestCase):
         serializer = CourseDetailSerializer(self.course1)
         self.assertEqual(serializer.data["title"], self.course1.title)
         self.assertEqual(serializer.data["price"], "100.00")
-        self.assertEqual(serializer.data["teacher_info"], {
-            "name": str(self.teacher1),
-            "experience_years": self.teacher1.experience_years
-        })
+        self.assertEqual(
+            serializer.data["teacher_info"],
+            {
+                "name": str(self.teacher1),
+                "experience_years": self.teacher1.experience_years,
+            },
+        )
 
     def test_course_create_update_serializer(self):
         data = {
@@ -53,11 +67,13 @@ class CourseSerializerTests(APITestCase):
             "education": self.education.id,
             "subject": self.subject.id,
             "is_published": True,
-            "is_active": True
+            "is_active": True,
         }
         request = self.client
         request.user = self.user1  # Set the user in the request context
-        serializer = CourseCreateUpdateSerializer(data=data, context={"request": request})
+        serializer = CourseCreateUpdateSerializer(
+            data=data, context={"request": request}
+        )
         self.assertTrue(serializer.is_valid())
         course = serializer.save(teacher=self.teacher1)
         self.assertEqual(course.title, data["title"])

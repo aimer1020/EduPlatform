@@ -8,13 +8,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('courses', '0008_alter_course_education'),
+        ("courses", "0008_alter_course_education"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='course',
-            name='course_img',
-            field=models.ImageField(blank=True, help_text='Course thumbnail (max 2MB, min 200x200px)', null=True, upload_to=courses.validators.course_image_path, validators=[django.core.validators.FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp']), courses.validators.validate_image_size, courses.validators.validate_image_dimensions]),
+            model_name="course",
+            name="course_img",
+            field=models.ImageField(
+                blank=True,
+                help_text="Course thumbnail (max 2MB, min 200x200px)",
+                null=True,
+                upload_to=courses.validators.course_image_path,
+                validators=[
+                    django.core.validators.FileExtensionValidator(
+                        allowed_extensions=["jpg", "jpeg", "png", "webp"]
+                    ),
+                    courses.validators.validate_image_size,
+                    courses.validators.validate_image_dimensions,
+                ],
+            ),
         ),
     ]

@@ -6,23 +6,36 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0002_remove_student_emergency_contact'),
+        ("users", "0002_remove_student_emergency_contact"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='deleted_at',
-            field=models.DateTimeField(blank=True, help_text='Timestamp when user was soft-deleted', null=True),
+            model_name="user",
+            name="deleted_at",
+            field=models.DateTimeField(
+                blank=True, help_text="Timestamp when user was soft-deleted", null=True
+            ),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='bio',
-            field=models.TextField(blank=True, help_text='Biography or introduction (max 500 characters)', max_length=500, null=True),
+            model_name="user",
+            name="bio",
+            field=models.TextField(
+                blank=True,
+                help_text="Biography or introduction (max 500 characters)",
+                max_length=500,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='userType',
-            field=models.CharField(choices=[('teacher', 'Teacher'), ('student', 'Student')], db_index=True, default='student', help_text='User role in the platform', max_length=10),
+            model_name="user",
+            name="userType",
+            field=models.CharField(
+                choices=[("teacher", "Teacher"), ("student", "Student")],
+                db_index=True,
+                default="student",
+                help_text="User role in the platform",
+                max_length=10,
+            ),
         ),
     ]

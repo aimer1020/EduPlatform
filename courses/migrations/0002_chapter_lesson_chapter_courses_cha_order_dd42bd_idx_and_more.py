@@ -9,64 +9,160 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('courses', '0001_initial'),
+        ("courses", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Chapter',
+            name="Chapter",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(db_index=True, help_text='Chapter title (e.g., Introduction to Calculus)', max_length=200)),
-                ('order', models.IntegerField(db_index=True, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(10)])),
-                ('course', models.ForeignKey(help_text='chapters that add to the course', on_delete=django.db.models.deletion.CASCADE, related_name='chapters_of_course', to='courses.course')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "title",
+                    models.CharField(
+                        db_index=True,
+                        help_text="Chapter title (e.g., Introduction to Calculus)",
+                        max_length=200,
+                    ),
+                ),
+                (
+                    "order",
+                    models.IntegerField(
+                        db_index=True,
+                        validators=[
+                            django.core.validators.MinValueValidator(1),
+                            django.core.validators.MaxValueValidator(10),
+                        ],
+                    ),
+                ),
+                (
+                    "course",
+                    models.ForeignKey(
+                        help_text="chapters that add to the course",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="chapters_of_course",
+                        to="courses.course",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Chapter',
-                'verbose_name_plural': 'Chapters',
-                'ordering': ['order'],
+                "verbose_name": "Chapter",
+                "verbose_name_plural": "Chapters",
+                "ordering": ["order"],
             },
         ),
         migrations.CreateModel(
-            name='Lesson',
+            name="Lesson",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(db_index=True, help_text='Lesson title (e.g., Introduction to Calculus)', max_length=200)),
-                ('video_url', models.CharField(help_text='url for start video for the Lesson', max_length=200)),
-                ('duration', models.DecimalField(decimal_places=2, help_text='time of a video for the Lesson', max_digits=4, validators=[django.core.validators.MinValueValidator(Decimal('1')), django.core.validators.MaxValueValidator(180.5)])),
-                ('order', models.IntegerField(db_index=True, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(10)])),
-                ('is_preview', models.BooleanField(db_index=True, default=False)),
-                ('chapter', models.ForeignKey(help_text='Lessons that add to the chapter', on_delete=django.db.models.deletion.CASCADE, related_name='lessons_of_chapter', to='courses.chapter')),
-                ('course', models.ForeignKey(help_text='Lessons that add to the course', on_delete=django.db.models.deletion.CASCADE, related_name='lessons_of_course', to='courses.course')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "title",
+                    models.CharField(
+                        db_index=True,
+                        help_text="Lesson title (e.g., Introduction to Calculus)",
+                        max_length=200,
+                    ),
+                ),
+                (
+                    "video_url",
+                    models.CharField(
+                        help_text="url for start video for the Lesson", max_length=200
+                    ),
+                ),
+                (
+                    "duration",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="time of a video for the Lesson",
+                        max_digits=4,
+                        validators=[
+                            django.core.validators.MinValueValidator(Decimal("1")),
+                            django.core.validators.MaxValueValidator(180.5),
+                        ],
+                    ),
+                ),
+                (
+                    "order",
+                    models.IntegerField(
+                        db_index=True,
+                        validators=[
+                            django.core.validators.MinValueValidator(1),
+                            django.core.validators.MaxValueValidator(10),
+                        ],
+                    ),
+                ),
+                ("is_preview", models.BooleanField(db_index=True, default=False)),
+                (
+                    "chapter",
+                    models.ForeignKey(
+                        help_text="Lessons that add to the chapter",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="lessons_of_chapter",
+                        to="courses.chapter",
+                    ),
+                ),
+                (
+                    "course",
+                    models.ForeignKey(
+                        help_text="Lessons that add to the course",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="lessons_of_course",
+                        to="courses.course",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Chapter',
-                'verbose_name_plural': 'Chapters',
-                'ordering': ['order'],
+                "verbose_name": "Chapter",
+                "verbose_name_plural": "Chapters",
+                "ordering": ["order"],
             },
         ),
         migrations.AddIndex(
-            model_name='chapter',
-            index=models.Index(fields=['order', 'course'], name='courses_cha_order_dd42bd_idx'),
+            model_name="chapter",
+            index=models.Index(
+                fields=["order", "course"], name="courses_cha_order_dd42bd_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='chapter',
-            index=models.Index(fields=['order', 'title'], name='courses_cha_order_812ef0_idx'),
+            model_name="chapter",
+            index=models.Index(
+                fields=["order", "title"], name="courses_cha_order_812ef0_idx"
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='chapter',
-            unique_together={('course', 'title')},
+            name="chapter",
+            unique_together={("course", "title")},
         ),
         migrations.AddIndex(
-            model_name='lesson',
-            index=models.Index(fields=['order', 'course'], name='courses_les_order_348f18_idx'),
+            model_name="lesson",
+            index=models.Index(
+                fields=["order", "course"], name="courses_les_order_348f18_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='lesson',
-            index=models.Index(fields=['order', 'title'], name='courses_les_order_d4444e_idx'),
+            model_name="lesson",
+            index=models.Index(
+                fields=["order", "title"], name="courses_les_order_d4444e_idx"
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='lesson',
-            unique_together={('course', 'title')},
+            name="lesson",
+            unique_together={("course", "title")},
         ),
     ]

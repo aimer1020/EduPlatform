@@ -8,18 +8,30 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0005_alter_teacher_additional_subjects'),
+        ("users", "0005_alter_teacher_additional_subjects"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='student',
-            name='user',
-            field=models.OneToOneField(help_text='User account with Student type', limit_choices_to={'user_type': 'student'}, on_delete=django.db.models.deletion.CASCADE, related_name='student_profile', to=settings.AUTH_USER_MODEL),
+            model_name="student",
+            name="user",
+            field=models.OneToOneField(
+                help_text="User account with Student type",
+                limit_choices_to={"user_type": "student"},
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="student_profile",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
-            model_name='teacher',
-            name='user',
-            field=models.OneToOneField(help_text='User account with Teacher type', limit_choices_to={'user_type': 'User.USER_TYPE_TEACHER'}, on_delete=django.db.models.deletion.CASCADE, related_name='teacher_profile', to=settings.AUTH_USER_MODEL),
+            model_name="teacher",
+            name="user",
+            field=models.OneToOneField(
+                help_text="User account with Teacher type",
+                limit_choices_to={"user_type": "User.USER_TYPE_TEACHER"},
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="teacher_profile",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

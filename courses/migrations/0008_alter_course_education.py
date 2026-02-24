@@ -7,13 +7,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('courses', '0007_alter_enrollment_payment_method'),
+        ("courses", "0007_alter_enrollment_payment_method"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='course',
-            name='education',
-            field=models.ForeignKey(blank=True, help_text='Education system this course belongs to', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='education_courses', to='courses.education'),
+            model_name="course",
+            name="education",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="Education system this course belongs to",
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="education_courses",
+                to="courses.education",
+            ),
         ),
     ]

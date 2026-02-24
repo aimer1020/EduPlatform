@@ -8,13 +8,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0006_alter_student_user_alter_teacher_user'),
+        ("users", "0006_alter_student_user_alter_teacher_user"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='teacher',
-            name='user',
-            field=models.OneToOneField(help_text='User account with Teacher type', limit_choices_to={'user_type': 'teacher'}, on_delete=django.db.models.deletion.CASCADE, related_name='teacher_profile', to=settings.AUTH_USER_MODEL),
+            model_name="teacher",
+            name="user",
+            field=models.OneToOneField(
+                help_text="User account with Teacher type",
+                limit_choices_to={"user_type": "teacher"},
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="teacher_profile",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

@@ -6,13 +6,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('courses', '0006_alter_enrollment_payment_method'),
+        ("courses", "0006_alter_enrollment_payment_method"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='enrollment',
-            name='payment_method',
-            field=models.CharField(choices=[('credit_card', 'Credit Card'), ('debit_card', 'Debit Card'), ('paypal', 'PayPal'), ('bank_transfer', 'Bank Transfer'), ('vodafone_cash', 'Vodafone Cash'), ('orange_cash', 'Orange Cash')], db_index=True, help_text='Payment method used', max_length=50),
+            model_name="enrollment",
+            name="payment_method",
+            field=models.CharField(
+                choices=[
+                    ("credit_card", "Credit Card"),
+                    ("debit_card", "Debit Card"),
+                    ("paypal", "PayPal"),
+                    ("bank_transfer", "Bank Transfer"),
+                    ("vodafone_cash", "Vodafone Cash"),
+                    ("orange_cash", "Orange Cash"),
+                ],
+                db_index=True,
+                help_text="Payment method used",
+                max_length=50,
+            ),
         ),
     ]

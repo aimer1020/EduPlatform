@@ -6,14 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('courses', '0004_subject'),
-        ('users', '0004_remove_user_users_user_usertyp_6e2bca_idx_and_more'),
+        ("courses", "0004_subject"),
+        ("users", "0004_remove_user_users_user_usertyp_6e2bca_idx_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='teacher',
-            name='additional_subjects',
-            field=models.ManyToManyField(blank=True, help_text='Additional subjects this teacher can teach', related_name='additional_teacher_subject', to='courses.subject'),
+            model_name="teacher",
+            name="additional_subjects",
+            field=models.ManyToManyField(
+                blank=True,
+                help_text="Additional subjects this teacher can teach",
+                related_name="additional_teacher_subject",
+                to="courses.subject",
+            ),
         ),
     ]

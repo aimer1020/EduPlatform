@@ -10,96 +10,169 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('auth', '0012_alter_user_first_name_max_length'),
-        ('courses', '0004_subject'),
-        ('users', '0003_user_deleted_at_alter_user_bio_alter_user_usertype'),
+        ("auth", "0012_alter_user_first_name_max_length"),
+        ("courses", "0004_subject"),
+        ("users", "0003_user_deleted_at_alter_user_bio_alter_user_usertype"),
     ]
 
     operations = [
         migrations.RemoveIndex(
-            model_name='user',
-            name='users_user_userTyp_6e2bca_idx',
+            model_name="user",
+            name="users_user_userTyp_6e2bca_idx",
         ),
         migrations.RenameField(
-            model_name='user',
-            old_name='userType',
-            new_name='user_type',
+            model_name="user",
+            old_name="userType",
+            new_name="user_type",
         ),
         migrations.RenameIndex(
-            model_name='teacher',
-            new_name='users_teach_subject_9ac92a_idx',
-            old_name='users_teach_subject_8912f8_idx',
+            model_name="teacher",
+            new_name="users_teach_subject_9ac92a_idx",
+            old_name="users_teach_subject_8912f8_idx",
         ),
         migrations.AddField(
-            model_name='student',
-            name='parent_name',
-            field=models.CharField(blank=True, help_text='Parent/guardian full name', max_length=200),
+            model_name="student",
+            name="parent_name",
+            field=models.CharField(
+                blank=True, help_text="Parent/guardian full name", max_length=200
+            ),
         ),
         migrations.AddField(
-            model_name='teacher',
-            name='additional_subjects',
-            field=models.ManyToManyField(blank=True, help_text='Additional subjects this teacher can teach', null=True, related_name='additional_teacher_subject', to='courses.subject'),
+            model_name="teacher",
+            name="additional_subjects",
+            field=models.ManyToManyField(
+                blank=True,
+                help_text="Additional subjects this teacher can teach",
+                null=True,
+                related_name="additional_teacher_subject",
+                to="courses.subject",
+            ),
         ),
         migrations.AddField(
-            model_name='teacher',
-            name='is_active',
-            field=models.BooleanField(db_index=True, default=True, help_text='Active profile status'),
+            model_name="teacher",
+            name="is_active",
+            field=models.BooleanField(
+                db_index=True, default=True, help_text="Active profile status"
+            ),
         ),
         migrations.AddField(
-            model_name='teacher',
-            name='verified_at',
-            field=models.DateTimeField(blank=True, help_text='When teacher was verified', null=True),
+            model_name="teacher",
+            name="verified_at",
+            field=models.DateTimeField(
+                blank=True, help_text="When teacher was verified", null=True
+            ),
         ),
         migrations.AddField(
-            model_name='teacher',
-            name='verified_by',
-            field=models.ForeignKey(blank=True, help_text='Admin who verified this teacher', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='verified_teachers', to=settings.AUTH_USER_MODEL),
+            model_name="teacher",
+            name="verified_by",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="Admin who verified this teacher",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="verified_teachers",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
-            model_name='student',
-            name='parent_phone',
-            field=models.CharField(help_text="Student's phone number (Egyptian/KSA format: 01XXXXXXXXX)", max_length=15, validators=[users.models.validate_phone]),
+            model_name="student",
+            name="parent_phone",
+            field=models.CharField(
+                help_text="Student's phone number (Egyptian/KSA format: 01XXXXXXXXX)",
+                max_length=15,
+                validators=[users.models.validate_phone],
+            ),
         ),
         migrations.AlterField(
-            model_name='student',
-            name='phone',
-            field=models.CharField(help_text="Student's phone number (Egyptian/KSA format: 01XXXXXXXXX)", max_length=15, validators=[users.models.validate_phone]),
+            model_name="student",
+            name="phone",
+            field=models.CharField(
+                help_text="Student's phone number (Egyptian/KSA format: 01XXXXXXXXX)",
+                max_length=15,
+                validators=[users.models.validate_phone],
+            ),
         ),
         migrations.AlterField(
-            model_name='student',
-            name='user',
-            field=models.OneToOneField(help_text='User account with Student type', limit_choices_to={'userType': 'student'}, on_delete=django.db.models.deletion.CASCADE, related_name='student_profile', to=settings.AUTH_USER_MODEL),
+            model_name="student",
+            name="user",
+            field=models.OneToOneField(
+                help_text="User account with Student type",
+                limit_choices_to={"userType": "student"},
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="student_profile",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
-            model_name='teacher',
-            name='cv',
-            field=models.FileField(blank=True, help_text='Upload CV in PDF format (max 5MB)', null=True, upload_to=users.models.cv_upload_path, validators=[django.core.validators.FileExtensionValidator(allowed_extensions=['pdf']), users.models.validate_file_size, users.models.validate_pdf]),
+            model_name="teacher",
+            name="cv",
+            field=models.FileField(
+                blank=True,
+                help_text="Upload CV in PDF format (max 5MB)",
+                null=True,
+                upload_to=users.models.cv_upload_path,
+                validators=[
+                    django.core.validators.FileExtensionValidator(
+                        allowed_extensions=["pdf"]
+                    ),
+                    users.models.validate_file_size,
+                    users.models.validate_pdf,
+                ],
+            ),
         ),
         migrations.AlterField(
-            model_name='teacher',
-            name='experience_years',
-            field=models.PositiveSmallIntegerField(default=1, help_text='Years of teaching experience (1-50)', validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(50)]),
+            model_name="teacher",
+            name="experience_years",
+            field=models.PositiveSmallIntegerField(
+                default=1,
+                help_text="Years of teaching experience (1-50)",
+                validators=[
+                    django.core.validators.MinValueValidator(1),
+                    django.core.validators.MaxValueValidator(50),
+                ],
+            ),
         ),
         migrations.AlterField(
-            model_name='teacher',
-            name='subject',
-            field=models.ForeignKey(blank=True, help_text='Primary subject specialization', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='teacher_subject', to='courses.subject'),
+            model_name="teacher",
+            name="subject",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="Primary subject specialization",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="teacher_subject",
+                to="courses.subject",
+            ),
         ),
         migrations.AlterField(
-            model_name='teacher',
-            name='user',
-            field=models.OneToOneField(help_text='User account with Teacher type', limit_choices_to={'userType': 'User.USER_TYPE_TEACHER'}, on_delete=django.db.models.deletion.CASCADE, related_name='teacher_profile', to=settings.AUTH_USER_MODEL),
+            model_name="teacher",
+            name="user",
+            field=models.OneToOneField(
+                help_text="User account with Teacher type",
+                limit_choices_to={"userType": "User.USER_TYPE_TEACHER"},
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="teacher_profile",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddIndex(
-            model_name='teacher',
-            index=models.Index(fields=['is_active', 'is_verified'], name='users_teach_is_acti_e5b6bc_idx'),
+            model_name="teacher",
+            index=models.Index(
+                fields=["is_active", "is_verified"],
+                name="users_teach_is_acti_e5b6bc_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='user',
-            index=models.Index(fields=['user_type', '-date_joined'], name='users_user_user_ty_40df35_idx'),
+            model_name="user",
+            index=models.Index(
+                fields=["user_type", "-date_joined"],
+                name="users_user_user_ty_40df35_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='user',
-            index=models.Index(fields=['is_active', 'user_type'], name='users_user_is_acti_134bcb_idx'),
+            model_name="user",
+            index=models.Index(
+                fields=["is_active", "user_type"], name="users_user_is_acti_134bcb_idx"
+            ),
         ),
     ]
