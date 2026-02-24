@@ -216,3 +216,35 @@ class IsTeacherAndOwnerProfile(permissions.BasePermission):
         if request.user.is_staff or request.user.is_superuser:
             return True
         return obj.user == request.user
+
+
+class IsAuthenticated(permissions.BasePermission):
+    """
+    Permission to allow only authenticated users to access their own resources.
+    """
+
+    message = "You can only access your own resources."
+
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        return obj.user == request.user
+
+
+class IsStudentOrAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if view.action == "list":
+            return request.user.is_authenticated and (
+                request.user.is_staff or request.user.is_superuser
+            )
+
+        if view.action == "create":
+            return request.user.is_authenticated
+        return request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        if request.user.is_staff or request.user.is_superuser:
+            return True
+
+        return obj.student.user == request.user
