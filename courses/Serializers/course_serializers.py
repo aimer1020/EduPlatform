@@ -1,5 +1,7 @@
+from pydantic_core import ValidationError
 from rest_framework import serializers
 from ..models.course_models import Course, Education, Subject
+from django.utils.translation import gettext_lazy as _
 from ..validators import (
     MAX_COURSE_PRICE,
     MIN_COURSE_PRICE,
@@ -55,13 +57,11 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             "description",
             "price",
             "course_img",
-            "is_published",
-            "is_active",
-            "teacher",
             "subject",
-            "education",
+            "enrollment_count",
+            "review_count",
+            "average_rating",
             "created_at",
-            "published_at",
         ]
 
     def get_teacher_info(self, obj):
@@ -81,21 +81,18 @@ class CourseListSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "title",
-            "subject",
             "price",
-            "course_img",
-            "is_published",
-            "is_active",
+            "subject",
             "teacher_name",
         ]
 
 
 class CourseCreateUpdateSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Course
         fields = [
             "id",
-            "teacher",
             "education",
             "subject",
             "title",
@@ -105,15 +102,21 @@ class CourseCreateUpdateSerializer(serializers.ModelSerializer):
             "is_published",
             "is_active",
         ]
-        read_only_fields = ["teacher"]
+        read_only_fields = ["id"]
 
     def validate(self, attrs):
         request = self.context.get("request")
         user = request.user if request else None
 
-        if self.instance and user and getattr(user, "user_type", None) == "student":
+        if user.is_staff or user.is_superuser:
+            return attrs
+
+        if self.instance and (
+            (not (user.is_staff or user.is_superuser))
+            or getattr(user, "user_type", None) == "student"
+        ):
             raise serializers.ValidationError(
-                "Students are not allowed to update courses."
+                _("Students are not allowed to update courses.")
             )
 
         is_active = attrs.get(
@@ -125,20 +128,22 @@ class CourseCreateUpdateSerializer(serializers.ModelSerializer):
 
         if not is_active and is_published:
             raise serializers.ValidationError(
-                {"is_published": "Cannot publish a course that is not active."}
+                {"is_published": _("Cannot publish a course that is not active.")}
             )
         return attrs
 
     def validate_price(self, value):
         if value < MIN_COURSE_PRICE or value > MAX_COURSE_PRICE:
             raise serializers.ValidationError(
-                f"Price must be between {MIN_COURSE_PRICE} and {MAX_COURSE_PRICE} EGP."
+                _("Price must be between {min_price} and {max_price} EGP.").format(
+                    min_price=MIN_COURSE_PRICE, max_price=MAX_COURSE_PRICE
+                )
             )
         return value
 
     def validate_title(self, value):
         if value.isdigit():
-            raise serializers.ValidationError("Title cannot be purely numeric.")
+            raise serializers.ValidationError(_("Title cannot be purely numeric."))
         return value
 
     def validate_course_img(self, value):
@@ -148,6 +153,26 @@ class CourseCreateUpdateSerializer(serializers.ModelSerializer):
 
             if not value.name.lower().endswith((".jpg", ".jpeg", ".png")):
                 raise serializers.ValidationError(
-                    "Unsupported file extension. Allowed: .jpg, .jpeg, .png"
+                    _("Unsupported file extension. Allowed: .jpg, .jpeg, .png")
                 )
         return value
+
+    def validate_teacher(self, value):
+        # Ensure teacher is verified
+        if not value.is_verified:
+            raise ValidationError(
+                {"teacher": _("Only verified teachers can create courses.")}
+            )
+        return value
+
+    def validate_education(self, value):
+        # Ensure education system is active
+        if not value.is_active:
+            raise ValidationError(
+                {"education": _("Cannot create course in inactive education system.")}
+            )
+        return value
+
+    def create(self, validated_data):
+        validated_data["teacher"] = self.context["request"].user.teacher_profile
+        return super().create(validated_data)

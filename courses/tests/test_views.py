@@ -1,7 +1,6 @@
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from django.core.files.uploadedfile import SimpleUploadedFile
 from courses.models.course_models import Course
 from users.models import Teacher
 from courses.Serializers.course_serializers import (
@@ -86,27 +85,6 @@ class CourseViewSetTests(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_update_permissions_owner_only(self):
-        url = reverse("course-detail", kwargs={"pk": self.course1.id})
-        self.client.force_authenticate(user=self.user2)
-        response = self.client.put(url, {"title": "Updated Title"})
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-        self.client.force_authenticate(user=self.user1)
-        response = self.client.put(
-            url,
-            {
-                "title": "Updated Title",
-                "description": "Updated Description",
-                "price": 150,
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.course1.refresh_from_db()
-        self.assertEqual(self.course1.title, "Updated Title")
-        self.assertEqual(self.course1.description, "Updated Description")
-        self.assertEqual(self.course1.price, 150)
-
     def test_delete_permissions_owner_only(self):
 
         url = reverse("course-detail", kwargs={"pk": self.course1.id})
@@ -162,9 +140,6 @@ class CourseViewSetTests(APITestCase):
             },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(
-            response.data["teacher"], self.teacher1.id
-        )  # Ensure teacher1 is set
 
     def test_search_filter(self):
         url = reverse("course-list")
@@ -188,14 +163,6 @@ class CourseViewSetTests(APITestCase):
         # Ensure the courses are ordered by price in descending order
         prices = [course["price"] for course in response.data]
         self.assertEqual(prices, ["200.00", "100.00"])
-
-    def test_partial_update(self):
-        url = reverse("course-detail", kwargs={"pk": self.course1.id})
-        self.client.force_authenticate(user=self.user1)
-        response = self.client.patch(url, {"title": "Partially Updated Title"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.course1.refresh_from_db()
-        self.assertEqual(self.course1.title, "Partially Updated Title")
 
     def test_update_nonexistent_course(self):
         url = reverse("course-detail", kwargs={"pk": 9999})

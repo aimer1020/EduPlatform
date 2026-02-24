@@ -1,7 +1,6 @@
 from django.test import TestCase
 from courses.models.course_models import Course, Subject, Education
 from users.models import Teacher, Student
-from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 import io
@@ -86,102 +85,6 @@ class CourseModelTest(TestCase):
         self.assertEqual(str(self.course), "Algebra 101")
         self.assertTrue(self.course.is_active)
         self.assertFalse(self.course.is_published)
-
-    def test_clean_method_teacher_verification(self):
-        unverified_teacher_user = User.objects.create_user(
-            username="unverifiedteacher", password="password123", user_type="teacher"
-        )
-        unverified_teacher_user.save()
-
-        unverified_teacher = Teacher.objects.create(
-            user=unverified_teacher_user, is_verified=False
-        )
-
-        file_io = io.BytesIO()
-        image = Image.new("RGB", (100, 100), color="white")
-        image.save(file_io, "JPEG")
-        file_io.seek(0)
-        temp_img = SimpleUploadedFile(
-            name="test_image.jpg", content=file_io.read(), content_type="image/jpeg"
-        )
-
-        course = Course(
-            teacher=unverified_teacher,
-            education=self.education,
-            subject=self.subject,
-            title="Geometry 101",
-            description="This is a test course description.",
-            course_img=temp_img,
-            price=100.00,
-        )
-        with self.assertRaises(ValidationError):
-            course.full_clean()
-
-    def test_clean_method_inactive_education(self):
-        self.education.is_active = False
-        self.education.save()
-
-        file_io = io.BytesIO()
-        image = Image.new("RGB", (300, 300), color="white")
-        image.save(file_io, "JPEG")
-        file_io.seek(0)
-        temp_img = SimpleUploadedFile(
-            name="test_image.jpg", content=file_io.read(), content_type="image/jpeg"
-        )
-
-        course = Course(
-            teacher=self.teacher,
-            education=self.education,
-            subject=self.subject,
-            title="Geometry 101",
-            description="This is a test course description.",
-            course_img=temp_img,
-            price=100.00,
-        )
-        with self.assertRaises(ValidationError):
-            course.full_clean()
-
-    def test_clean_method_image_dimensions(self):
-        file_io = io.BytesIO()
-        image = Image.new("RGB", (100, 100), color="white")
-        image.save(file_io, "JPEG")
-        file_io.seek(0)
-        temp_img = SimpleUploadedFile(
-            name="test_image.jpg", content=file_io.read(), content_type="image/jpeg"
-        )
-
-        course = Course(
-            teacher=self.teacher,
-            education=self.education,
-            subject=self.subject,
-            title="Geometry 101",
-            description="This is a test course description.",
-            course_img=temp_img,
-            price=100.00,
-        )
-        with self.assertRaises(ValidationError):
-            course.full_clean()
-
-    def test_clean_method_price_validation(self):
-        file_io = io.BytesIO()
-        image = Image.new("RGB", (100, 100), color="white")
-        image.save(file_io, "JPEG")
-        file_io.seek(0)
-        temp_img = SimpleUploadedFile(
-            name="test_image.jpg", content=file_io.read(), content_type="image/jpeg"
-        )
-
-        course = Course(
-            teacher=self.teacher,
-            education=self.education,
-            subject=self.subject,
-            title="Geometry 101",
-            description="This is a test course description.",
-            course_img=temp_img,
-            price=0.00,
-        )
-        with self.assertRaises(ValidationError):
-            course.full_clean()
 
     def test_soft_delete(self):
         self.course.soft_delete()

@@ -1,6 +1,6 @@
 from decimal import Decimal
 from django.db import models
-from django.db.models import Avg, Count, Q, Sum
+from django.db.models import Avg, Sum
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -12,8 +12,19 @@ from django.core.validators import (
 )
 from django.utils import timezone
 
-from ..validators import *
-from users.models import Teacher, Student
+from ..validators import (
+    ALLOWED_IMAGE_EXTENSIONS as ALLOWED_IMAGE_EXTENSIONS,
+    MAX_COURSE_PRICE as MAX_COURSE_PRICE,
+    MIN_COURSE_PRICE as MIN_COURSE_PRICE,
+    MIN_IMAGE_HEIGHT,
+    MIN_IMAGE_WIDTH as MIN_IMAGE_WIDTH,
+    MAX_IMAGE_SIZE_MB as MAX_IMAGE_SIZE_MB,
+    course_image_path as course_image_path,
+    education_flag_path as education_flag_path,
+    validate_image_dimensions as validate_image_dimensions,
+    validate_image_size as validate_image_size,
+)
+from users.models import Teacher
 
 User = settings.AUTH_USER_MODEL
 
@@ -322,39 +333,6 @@ class Course(models.Model):
     def __str__(self):
         return self.title
 
-    def clean(self):
-        """
-        Custom validation for business logic.
-
-        Validates:
-        - Teacher must be verified
-        - Education system must be active
-        - Price must be reasonable
-        """
-        super().clean()
-
-        # Skip if objects not yet assigned
-        if not self.teacher_id or not self.education_id:
-            return
-
-        # Ensure teacher is verified
-        if not self.teacher.is_verified:
-            raise ValidationError(
-                {"teacher": _("Only verified teachers can create courses.")}
-            )
-
-        # Ensure education system is active
-        if not self.education.is_active:
-            raise ValidationError(
-                {"education": _("Cannot create course in inactive education system.")}
-            )
-
-        # Validate price is set
-        if self.price is None or self.price <= 0:
-            raise ValidationError(
-                {"price": _(f"Course price must be at least {MIN_COURSE_PRICE}")}
-            )
-
     def save(self, *args, **kwargs):
         """
         Override save to handle slug generation and validation.
@@ -378,22 +356,12 @@ class Course(models.Model):
 
         super().save(*args, **kwargs)
 
-    # Properties with correct naming
     @property
     def enrollment_count(self):
         """Total enrollements"""
-        return (
-            self.course_enrollments.filter(status="active").count()
-            if hasattr(self, "students_enrollments")
-            else 0
-        )
-
-    @property
-    def enrolled_students(self):
-        """Get queryset of enrolled students"""
-        return Student.objects.filter(
-            enrollments__course=self, enrollments__is_active=True
-        ).distinct()
+        return self.course_enrollments.filter(
+            status__in=["active", "completed"]
+        ).count()
 
     @property
     def total_revenue(self):

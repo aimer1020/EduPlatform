@@ -1,6 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-
+# from django.utils.translation import gettext_lazy as _
 from ..models.course_models import Course
 from ..Serializers.course_serializers import (
     CourseCreateUpdateSerializer,
@@ -23,20 +23,19 @@ class CourseViewSet(viewsets.ModelViewSet):
             return CourseDetailSerializer
         elif self.action in ["create", "update", "partial_update"]:
             return CourseCreateUpdateSerializer
-        return CourseDetailSerializer  # Default serializer
+        return CourseDetailSerializer
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Course.objects.select_related("education", "teacher", "subject")
+        queryset = Course.objects.select_related(
+            "education", "teacher", "subject", "teacher__user"
+        )
 
-        if self.action == "list":
+        if self.action in ["list", "retrieve"]:
             if user.is_authenticated and user.user_type == "teacher":
                 return queryset.filter(teacher__user=user)
             return queryset.filter(is_published=True, is_active=True)
         return queryset
-
-    def perform_create(self, serializer):
-        serializer.save(teacher=self.request.user.teacher_profile)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
